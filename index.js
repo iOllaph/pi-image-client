@@ -4,7 +4,7 @@ import path from "path";
 import { exec } from "child_process";
 
 // -------------------- Configuration --------------------
-const RELAY_WS_URL = "wss://pi-relay.estudyo.com.br"; // WebSocket URL
+const RELAY_WS_URL = "wss://youwebsocket"; // WebSocket URL
 const TEMP_DIR = "/tmp"; // temp folder to save images
 const PRINTER_NAME = "Brother_QL-800"; // change if your printer has a different name
 
