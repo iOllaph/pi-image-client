@@ -1,18 +1,29 @@
-// pi-client.js
 import WebSocket from "ws";
 import fs from "fs/promises";
 import path from "path";
+import { exec } from "child_process";
 
 // -------------------- Configuration --------------------
 const RELAY_WS_URL = "wss://pi-relay.estudyo.com.br"; // WebSocket URL
 const TEMP_DIR = "/tmp"; // temp folder to save images
+const PRINTER_NAME = "Brother_QL-800"; // change if your printer has a different name
 
-// -------------------- Mock Print Function --------------------
+// -------------------- Print Function --------------------
 async function printJob(filePath) {
-  console.log(`🖨️ Printing job from file: ${filePath}`);
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-  const success = Math.random() > 0.1; // simulate random success/failure
-  return success ? { status: "OK" } : { status: "FAIL", error: "Printer error" };
+  try {
+    // Ensure file exists
+    await fs.access(filePath);
+
+    // Send file to printer
+    return new Promise((resolve, reject) => {
+      exec(`lp -d ${PRINTER_NAME} ${filePath}`, (err, stdout, stderr) => {
+        if (err) return reject(new Error(stderr || err.message));
+        resolve({ status: "OK", result: stdout.trim() });
+      });
+    });
+  } catch (err) {
+    return { status: "FAIL", error: err.message };
+  }
 }
 
 // -------------------- WebSocket Client --------------------
@@ -41,7 +52,7 @@ socket.on("message", async (data) => {
     await fs.writeFile(tempFile, imageBuffer);
     console.log(`💾 Image saved to ${tempFile}`);
 
-    // Mock print
+    // Print the file
     const result = await printJob(tempFile);
 
     // Clean up temp file
